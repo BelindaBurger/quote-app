@@ -11,17 +11,17 @@ function formatDate(ts) {
 }
 
 export default function QuoteView() {
-  const router  = useRouter();
-  const { id }  = router.query;
+  const router = useRouter();
+  const { id } = router.query;
 
-  const [quote,      setQuote]   = useState(null);
+  const [quote,      setQuote]  = useState(null);
   const [loading,    setLoading] = useState(true);
-  const [step,       setStep]    = useState("view");
-  const [sigName,    setSig]     = useState("");
-  const [sigMobile,  setMobile]  = useState("");
-  const [sigEmail,   setEmail]   = useState("");
-  const [submitting, setSub]     = useState(false);
-  const [error,      setError]   = useState("");
+  const [step,       setStep]   = useState("view");
+  const [sigName,    setSig]    = useState("");
+  const [sigMobile,  setMobile] = useState("");
+  const [sigEmail,   setEmail]  = useState("");
+  const [submitting, setSub]    = useState(false);
+  const [error,      setError]  = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -34,10 +34,21 @@ export default function QuoteView() {
 
   function handleDownload() {
     if (!quote?.pdfData) return;
+    const byteString = atob(quote.pdfData.split(",")[1]);
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    const blob = new Blob([ab], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = quote.pdfData;
+    link.href = url;
     link.download = quote.fileName || "quote.pdf";
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   async function handleAccept() {
@@ -48,7 +59,6 @@ export default function QuoteView() {
     setSub(true); setError("");
     try {
       await respondToQuote(id, "accepted", sigName.trim(), sigMobile.trim(), sigEmail.trim());
-
       const quoteLink = `${window.location.origin}/quote/${id}`;
       await sendAcceptanceEmail({
         clientName:   quote.clientName,
@@ -59,7 +69,6 @@ export default function QuoteView() {
         clientMobile: sigMobile.trim(),
         clientEmail:  sigEmail.trim(),
       });
-
       setQuote(prev => ({ ...prev, status:"accepted", acceptedByName: sigName.trim() }));
       setStep("done");
     } catch(e) {
@@ -119,7 +128,7 @@ export default function QuoteView() {
   );
 
   return (
-    <Screen title={`Quote for ${quote.clientName}`}>
+    <Screen title="Your Quote from Alublack">
       <div style={{ maxWidth:740, margin:"0 auto", padding:"32px 20px 100px" }}>
 
         {/* Header */}
@@ -137,7 +146,7 @@ export default function QuoteView() {
           </div>
         </div>
 
-        {/* Already responded */}
+        {/* Already responded banner */}
         {quote.status !== "pending" && (
           <div style={{
             background: quote.status==="accepted" ? "#D1FAE5" : "#FEE2E2",
@@ -151,62 +160,26 @@ export default function QuoteView() {
           </div>
         )}
 
-        {/* Download & Print buttons */}
-        <div style={{ display:"flex", gap:10, marginBottom:20 }}>
-          <button onClick={handleDownload} style={dlBtn}>
-            ⬇ Download PDF
-          </button>
-          <button onClick={handlePrint} style={dlBtn}>
-            🖨 Print Quote
-          </button>
-        </div>
-
-        {/* PDF embed */}
-        <div style={{ borderRadius:12, overflow:"hidden", border:"1px solid #E2E8F0",
-          marginBottom:32, boxShadow:"0 4px 24px rgba(0,0,0,.06)" }}>
-          <iframe
-            src={quote.pdfData}
-            title="Quote PDF"
-            style={{ width:"100%", height:640, border:"none", display:"block" }}
-          />
-        </div>
-
-        {/* Action buttons */}
+        {/* Accept/Decline at TOP */}
         {quote.status === "pending" && (
           step === "confirm" ? (
-            <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0", borderRadius:14, padding:28 }}>
+            <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0",
+              borderRadius:14, padding:28, marginBottom:28 }}>
               <h3 style={{ fontWeight:800, color:"#065F46", margin:"0 0 8px", fontSize:17 }}>
                 Confirm Your Acceptance
               </h3>
               <p style={{ fontSize:14, color:"#15803D", margin:"0 0 18px", lineHeight:1.5 }}>
                 Please fill in your details to confirm you accept this quote.
               </p>
-
               <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:14 }}>
-                <input
-                  value={sigName}
-                  onChange={e => setSig(e.target.value)}
-                  placeholder="Full name *"
-                  style={inputStyle}
-                />
-                <input
-                  value={sigMobile}
-                  onChange={e => setMobile(e.target.value)}
-                  placeholder="Mobile number *"
-                  type="tel"
-                  style={inputStyle}
-                />
-                <input
-                  value={sigEmail}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="Email address *"
-                  type="email"
-                  style={inputStyle}
-                />
+                <input value={sigName} onChange={e=>setSig(e.target.value)}
+                  placeholder="Full name *" style={inputStyle} />
+                <input value={sigMobile} onChange={e=>setMobile(e.target.value)}
+                  placeholder="Mobile number *" type="tel" style={inputStyle} />
+                <input value={sigEmail} onChange={e=>setEmail(e.target.value)}
+                  placeholder="Email address *" type="email" style={inputStyle} />
               </div>
-
               {error && <div style={{ color:"#DC2626", fontSize:13, marginBottom:12 }}>{error}</div>}
-
               <div style={{ display:"flex", gap:10 }}>
                 <button onClick={handleAccept} disabled={submitting} style={{
                   flex:1, padding:"13px", borderRadius:9, border:"none",
@@ -223,7 +196,7 @@ export default function QuoteView() {
               </div>
             </div>
           ) : (
-            <div style={{ display:"flex", gap:12 }}>
+            <div style={{ display:"flex", gap:12, marginBottom:28 }}>
               <button onClick={()=>setStep("confirm")} style={{
                 flex:1, padding:"15px", borderRadius:10, border:"none",
                 background:"#10B981", color:"#fff", fontWeight:800, fontSize:16, cursor:"pointer",
@@ -240,6 +213,23 @@ export default function QuoteView() {
             </div>
           )
         )}
+
+        {/* Download & Print */}
+        <div style={{ display:"flex", gap:10, marginBottom:20 }}>
+          <button onClick={handleDownload} style={dlBtn}>⬇ Download PDF</button>
+          <button onClick={handlePrint} style={dlBtn}>🖨 Print Quote</button>
+        </div>
+
+        {/* PDF embed */}
+        <div style={{ borderRadius:12, overflow:"hidden", border:"1px solid #E2E8F0",
+          marginBottom:32, boxShadow:"0 4px 24px rgba(0,0,0,.06)" }}>
+          <iframe
+            src={quote.pdfData}
+            title="Quote PDF"
+            style={{ width:"100%", height:640, border:"none", display:"block" }}
+          />
+        </div>
+
       </div>
     </Screen>
   );
@@ -252,8 +242,7 @@ const inputStyle = {
 
 const dlBtn = {
   padding:"10px 18px", borderRadius:8, border:"1px solid #E2E8F0",
-  background:"#fff", color:"#374151", fontWeight:600, fontSize:13,
-  cursor:"pointer", display:"flex", alignItems:"center", gap:6,
+  background:"#fff", color:"#374151", fontWeight:600, fontSize:13, cursor:"pointer",
 };
 
 function Screen({ title, children }) {

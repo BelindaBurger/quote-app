@@ -16,8 +16,10 @@ export default function QuoteView() {
 
   const [quote,      setQuote]   = useState(null);
   const [loading,    setLoading] = useState(true);
-  const [step,       setStep]    = useState("view");   // view | confirm | done
+  const [step,       setStep]    = useState("view");
   const [sigName,    setSig]     = useState("");
+  const [sigMobile,  setMobile]  = useState("");
+  const [sigEmail,   setEmail]   = useState("");
   const [submitting, setSub]     = useState(false);
   const [error,      setError]   = useState("");
 
@@ -26,20 +28,36 @@ export default function QuoteView() {
     loadQuote(id).then(q => { setQuote(q); setLoading(false); });
   }, [id]);
 
+  function handlePrint() {
+    window.print();
+  }
+
+  function handleDownload() {
+    if (!quote?.pdfData) return;
+    const link = document.createElement("a");
+    link.href = quote.pdfData;
+    link.download = quote.fileName || "quote.pdf";
+    link.click();
+  }
+
   async function handleAccept() {
-    if (!sigName.trim()) return setError("Please enter your name to confirm.");
+    if (!sigName.trim())   return setError("Please enter your full name.");
+    if (!sigMobile.trim()) return setError("Please enter your mobile number.");
+    if (!sigEmail.trim())  return setError("Please enter your email address.");
+    if (!/\S+@\S+\.\S+/.test(sigEmail)) return setError("Please enter a valid email address.");
     setSub(true); setError("");
     try {
-      await respondToQuote(id, "accepted", sigName.trim());
+      await respondToQuote(id, "accepted", sigName.trim(), sigMobile.trim(), sigEmail.trim());
 
-      // Send email notification
       const quoteLink = `${window.location.origin}/quote/${id}`;
       await sendAcceptanceEmail({
-        clientName:  quote.clientName,
-        quoteRef:    quote.quoteRef,
-        acceptedBy:  sigName.trim(),
-        acceptedAt:  Date.now(),
+        clientName:   quote.clientName,
+        quoteRef:     quote.quoteRef,
+        acceptedBy:   sigName.trim(),
+        acceptedAt:   Date.now(),
         quoteLink,
+        clientMobile: sigMobile.trim(),
+        clientEmail:  sigEmail.trim(),
       });
 
       setQuote(prev => ({ ...prev, status:"accepted", acceptedByName: sigName.trim() }));
@@ -102,15 +120,15 @@ export default function QuoteView() {
 
   return (
     <Screen title={`Quote for ${quote.clientName}`}>
-      {/* Quote header */}
       <div style={{ maxWidth:740, margin:"0 auto", padding:"32px 20px 100px" }}>
+
+        {/* Header */}
         <div style={{ marginBottom:24, paddingBottom:20, borderBottom:"1px solid #E2E8F0" }}>
           <div style={{ fontSize:11, fontWeight:700, color:"#94A3B8", textTransform:"uppercase",
             letterSpacing:1.5, marginBottom:6 }}>
             Quote Prepared For
           </div>
-          <h1 style={{ fontSize:28, fontWeight:800, color:"#0F172A", margin:"0 0 6px",
-            letterSpacing:"-0.5px" }}>
+          <h1 style={{ fontSize:28, fontWeight:800, color:"#0F172A", margin:"0 0 6px", letterSpacing:"-0.5px" }}>
             {quote.clientName}
           </h1>
           <div style={{ fontSize:13, color:"#94A3B8" }}>
@@ -133,6 +151,16 @@ export default function QuoteView() {
           </div>
         )}
 
+        {/* Download & Print buttons */}
+        <div style={{ display:"flex", gap:10, marginBottom:20 }}>
+          <button onClick={handleDownload} style={dlBtn}>
+            ⬇ Download PDF
+          </button>
+          <button onClick={handlePrint} style={dlBtn}>
+            🖨 Print Quote
+          </button>
+        </div>
+
         {/* PDF embed */}
         <div style={{ borderRadius:12, overflow:"hidden", border:"1px solid #E2E8F0",
           marginBottom:32, boxShadow:"0 4px 24px rgba(0,0,0,.06)" }}>
@@ -146,29 +174,43 @@ export default function QuoteView() {
         {/* Action buttons */}
         {quote.status === "pending" && (
           step === "confirm" ? (
-            <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0",
-              borderRadius:14, padding:28 }}>
+            <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0", borderRadius:14, padding:28 }}>
               <h3 style={{ fontWeight:800, color:"#065F46", margin:"0 0 8px", fontSize:17 }}>
                 Confirm Your Acceptance
               </h3>
               <p style={{ fontSize:14, color:"#15803D", margin:"0 0 18px", lineHeight:1.5 }}>
-                By entering your name below you confirm that you accept this quote and its terms.
+                Please fill in your details to confirm you accept this quote.
               </p>
-              <input
-                value={sigName}
-                onChange={e => setSig(e.target.value)}
-                placeholder="Your full name"
-                style={{ width:"100%", padding:"12px 14px", borderRadius:8, border:"1px solid #BBF7D0",
-                  fontSize:15, outline:"none", boxSizing:"border-box", marginBottom:14,
-                  color:"#1E293B", background:"#fff" }}
-              />
+
+              <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:14 }}>
+                <input
+                  value={sigName}
+                  onChange={e => setSig(e.target.value)}
+                  placeholder="Full name *"
+                  style={inputStyle}
+                />
+                <input
+                  value={sigMobile}
+                  onChange={e => setMobile(e.target.value)}
+                  placeholder="Mobile number *"
+                  type="tel"
+                  style={inputStyle}
+                />
+                <input
+                  value={sigEmail}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="Email address *"
+                  type="email"
+                  style={inputStyle}
+                />
+              </div>
+
               {error && <div style={{ color:"#DC2626", fontSize:13, marginBottom:12 }}>{error}</div>}
+
               <div style={{ display:"flex", gap:10 }}>
-                <button onClick={handleAccept} disabled={!sigName.trim()||submitting} style={{
+                <button onClick={handleAccept} disabled={submitting} style={{
                   flex:1, padding:"13px", borderRadius:9, border:"none",
-                  background: sigName.trim() ? "#10B981" : "#D1D5DB",
-                  color:"#fff", fontWeight:700, fontSize:15,
-                  cursor: sigName.trim() ? "pointer" : "not-allowed",
+                  background:"#10B981", color:"#fff", fontWeight:700, fontSize:15, cursor:"pointer",
                 }}>
                   {submitting ? "Submitting…" : "✓ I Accept This Quote"}
                 </button>
@@ -190,9 +232,8 @@ export default function QuoteView() {
                 ✓ Accept Quote
               </button>
               <button onClick={handleDecline} disabled={submitting} style={{
-                padding:"15px 24px", borderRadius:10,
-                border:"1px solid #FECACA", background:"#fff",
-                color:"#DC2626", fontWeight:700, fontSize:14, cursor:"pointer",
+                padding:"15px 24px", borderRadius:10, border:"1px solid #FECACA",
+                background:"#fff", color:"#DC2626", fontWeight:700, fontSize:14, cursor:"pointer",
               }}>
                 Decline
               </button>
@@ -204,18 +245,29 @@ export default function QuoteView() {
   );
 }
 
+const inputStyle = {
+  width:"100%", padding:"12px 14px", borderRadius:8, border:"1px solid #BBF7D0",
+  fontSize:15, outline:"none", boxSizing:"border-box", color:"#1E293B", background:"#fff",
+};
+
+const dlBtn = {
+  padding:"10px 18px", borderRadius:8, border:"1px solid #E2E8F0",
+  background:"#fff", color:"#374151", fontWeight:600, fontSize:13,
+  cursor:"pointer", display:"flex", alignItems:"center", gap:6,
+};
+
 function Screen({ title, children }) {
   return (
     <>
       <Head>
-        <title>{title} | QuoteShare</title>
+        <title>{title} | Alublack Quotes</title>
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
       </Head>
       <div style={{ fontFamily:"'DM Sans', sans-serif", minHeight:"100vh", background:"#F8FAFC" }}>
         <nav style={{ background:"#0F172A", padding:"0 24px", height:52,
           display:"flex", alignItems:"center", gap:10 }}>
           <span style={{ fontSize:20 }}>📋</span>
-          <span style={{ color:"#fff", fontWeight:800, fontSize:16 }}>QuoteShare</span>
+          <span style={{ color:"#fff", fontWeight:800, fontSize:16 }}>Alublack Quotes</span>
         </nav>
         {children}
       </div>

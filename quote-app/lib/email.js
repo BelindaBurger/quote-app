@@ -17,7 +17,7 @@ const TEMPLATE_ID = "template_ebm1km6";
 const PUBLIC_KEY  = "_1RNUsqdlcHncGkKb";
 
 // Your email address — where notifications will be sent
-const YOUR_EMAIL  = "belindaburger84@gmail.com";
+const YOUR_EMAIL  = "sales@alublack.com";
 
 export async function sendAcceptanceEmail({ clientName, quoteRef, acceptedBy, acceptedAt, quoteLink }) {
   const templateParams = {

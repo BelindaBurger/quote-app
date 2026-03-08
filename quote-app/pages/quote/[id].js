@@ -249,7 +249,7 @@ function Screen({ title, children }) {
   return (
     <>
       <Head>
-        <title>{title} | Alublack Quotes</title>
+        <title>Your Quote from Alublack</title>
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
       </Head>
       <div style={{ fontFamily:"'DM Sans', sans-serif", minHeight:"100vh", background:"#F8FAFC" }}>

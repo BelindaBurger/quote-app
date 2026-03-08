@@ -140,7 +140,7 @@ function SuccessScreen({ quote, onBack }) {
     navigator.clipboard.writeText(link).then(() => { setCopied(true); setTimeout(()=>setCopied(false), 2000); });
   }
 
-  const waText = encodeURIComponent(`Hi ${quote.clientName} 👋\n\nPlease find your quote here:\n${link}\n\nYou can view and accept it directly from the link.`);
+  const waText = encodeURIComponent(`Hi ${quote.clientName},\n\nPlease find your quote here:\n${link}\n\nYou can view and accept it directly from the link.`);
 
   return (
     <div style={{ maxWidth: 520, margin: "0 auto", textAlign:"center" }}>

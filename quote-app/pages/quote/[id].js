@@ -81,7 +81,7 @@ export default function QuoteView() {
   }
 
   if (loading) return (
-    <Screen title="Loading…">
+    <Screen title="Your Quote from Alublack">
       <div style={{ textAlign:"center", color:"#94A3B8", padding:80, fontSize:15 }}>
         Loading your quote…
       </div>

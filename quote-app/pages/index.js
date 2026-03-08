@@ -174,8 +174,17 @@ function SuccessScreen({ quote, onBack }) {
 // ── Dashboard ──────────────────────────────────────────────────────────────
 function DashboardScreen({ onNew }) {
   const [quotes, setQuotes] = useState(null);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => { listQuotes().then(setQuotes); }, []);
+
+  const filtered = quotes ? quotes.filter(q => {
+    const matchSearch = q.clientName.toLowerCase().includes(search.toLowerCase()) ||
+      q.quoteRef.toLowerCase().includes(search.toLowerCase());
+    const matchFilter = filter === "all" || q.status === filter;
+    return matchSearch && matchFilter;
+  }) : [];
 
   const counts = quotes ? {
     total:    quotes.length,
@@ -196,14 +205,16 @@ function DashboardScreen({ onNew }) {
       </div>
 
       {counts && (
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:28 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:24 }}>
           {[
-            { label:"Total Quotes",   value: counts.total,    color:"#2563EB" },
-            { label:"Awaiting",       value: counts.pending,  color:"#D97706" },
-            { label:"Accepted",       value: counts.accepted, color:"#10B981" },
+            { label:"Total Quotes",   value: counts.total,    color:"#2563EB", id:"all" },
+            { label:"Awaiting",       value: counts.pending,  color:"#D97706", id:"pending" },
+            { label:"Accepted",       value: counts.accepted, color:"#10B981", id:"accepted" },
           ].map(c => (
-            <div key={c.label} style={{ background:"#fff", border:"1px solid #E2E8F0",
-              borderRadius:10, padding:"16px 18px" }}>
+            <div key={c.label} onClick={() => setFilter(filter === c.id ? "all" : c.id)}
+              style={{ background: filter===c.id ? "#F0F9FF" : "#fff",
+                border: `1px solid ${filter===c.id ? "#2563EB" : "#E2E8F0"}`,
+                borderRadius:10, padding:"16px 18px", cursor:"pointer", transition:"all .15s" }}>
               <div style={{ fontSize:26, fontWeight:800, color: c.color }}>{c.value}</div>
               <div style={{ fontSize:12, color:"#94A3B8", marginTop:2 }}>{c.label}</div>
             </div>
@@ -211,16 +222,34 @@ function DashboardScreen({ onNew }) {
         </div>
       )}
 
+      {/* Search bar */}
+      <div style={{ position:"relative", marginBottom:16 }}>
+        <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", fontSize:16 }}>🔍</span>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search by client name or quote reference…"
+          style={{ ...styles.input, paddingLeft:38, background:"#fff" }}
+        />
+        {search && (
+          <button onClick={() => setSearch("")}
+            style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+              background:"none", border:"none", cursor:"pointer", color:"#94A3B8", fontSize:18 }}>
+            ×
+          </button>
+        )}
+      </div>
+
       {quotes === null ? (
         <div style={{ textAlign:"center", color:"#94A3B8", padding:40 }}>Loading…</div>
-      ) : quotes.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div style={{ textAlign:"center", padding:"60px 20px", color:"#94A3B8" }}>
-          <div style={{ fontSize:40, marginBottom:12 }}>📋</div>
-          <div>No quotes yet. Upload your first one!</div>
+          <div style={{ fontSize:40, marginBottom:12 }}>{search ? "🔍" : "📋"}</div>
+          <div>{search ? `No quotes found for "${search}"` : "No quotes yet. Upload your first one!"}</div>
         </div>
       ) : (
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {quotes.map(q => (
+          {filtered.map(q => (
             <div key={q.id} style={styles.quoteRow}
               onClick={() => window.open(`/quote/${q.id}`, "_blank")}
               onMouseEnter={e => e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,.08)"}
@@ -233,7 +262,9 @@ function DashboardScreen({ onNew }) {
                   {q.acceptedAt && ` · Responded ${formatDate(q.acceptedAt)}`}
                 </div>
               </div>
-              <StatusBadge status={q.status} />
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <StatusBadge status={q.status} />
+              </div>
             </div>
           ))}
         </div>
@@ -241,6 +272,7 @@ function DashboardScreen({ onNew }) {
     </div>
   );
 }
+
 
 // ── App ────────────────────────────────────────────────────────────────────
 export default function Home() {

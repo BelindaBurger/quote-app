@@ -75,18 +75,22 @@ export default function QuoteView() {
   }
 
   async function handleDecline() {
-    setSub(true);
+    if (!sigName.trim())   return setError("Please enter your full name.");
+    if (!sigMobile.trim()) return setError("Please enter your mobile number.");
+    if (!sigEmail.trim())  return setError("Please enter your email address.");
+    if (!/\S+@\S+\.\S+/.test(sigEmail)) return setError("Please enter a valid email address.");
+    setSub(true); setError("");
     try {
-      await respondToQuote(id, "declined");
+      await respondToQuote(id, "declined", sigName.trim(), sigMobile.trim(), sigEmail.trim());
       const quoteLink = `${window.location.origin}/quote/${id}`;
       await sendAcceptanceEmail({
         clientName:   quote.clientName,
         quoteRef:     quote.quoteRef,
-        acceptedBy:   "—",
+        acceptedBy:   sigName.trim(),
         acceptedAt:   Date.now(),
         quoteLink,
-        clientMobile: "—",
-        clientEmail:  "—",
+        clientMobile: sigMobile.trim(),
+        clientEmail:  sigEmail.trim(),
         status:       "DECLINED",
       });
       setQuote(prev => ({ ...prev, status:"declined" }));
@@ -167,7 +171,7 @@ export default function QuoteView() {
         )}
 
         {quote.status === "pending" && (
-          step === "confirm" ? (
+          step === "confirm-accept" ? (
             <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0",
               borderRadius:14, padding:28, marginBottom:28 }}>
               <h3 style={{ fontWeight:800, color:"#065F46", margin:"0 0 8px", fontSize:17 }}>
@@ -200,16 +204,49 @@ export default function QuoteView() {
                 </button>
               </div>
             </div>
+          ) : step === "confirm-decline" ? (
+            <div style={{ background:"#FEF2F2", border:"1px solid #FECACA",
+              borderRadius:14, padding:28, marginBottom:28 }}>
+              <h3 style={{ fontWeight:800, color:"#991B1B", margin:"0 0 8px", fontSize:17 }}>
+                Confirm Decline
+              </h3>
+              <p style={{ fontSize:14, color:"#B91C1C", margin:"0 0 18px", lineHeight:1.5 }}>
+                Please fill in your details before declining.
+              </p>
+              <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:14 }}>
+                <input value={sigName} onChange={e=>setSig(e.target.value)}
+                  placeholder="Full name *" style={{...inputStyle, border:"1px solid #FECACA"}} />
+                <input value={sigMobile} onChange={e=>setMobile(e.target.value)}
+                  placeholder="Mobile number *" type="tel" style={{...inputStyle, border:"1px solid #FECACA"}} />
+                <input value={sigEmail} onChange={e=>setEmail(e.target.value)}
+                  placeholder="Email address *" type="email" style={{...inputStyle, border:"1px solid #FECACA"}} />
+              </div>
+              {error && <div style={{ color:"#DC2626", fontSize:13, marginBottom:12 }}>{error}</div>}
+              <div style={{ display:"flex", gap:10 }}>
+                <button onClick={handleDecline} disabled={submitting} style={{
+                  flex:1, padding:"13px", borderRadius:9, border:"none",
+                  background:"#DC2626", color:"#fff", fontWeight:700, fontSize:15, cursor:"pointer",
+                }}>
+                  {submitting ? "Submitting…" : "✗ Decline This Quote"}
+                </button>
+                <button onClick={()=>setStep("view")} style={{
+                  padding:"13px 20px", borderRadius:9, border:"1px solid #CBD5E1",
+                  background:"#fff", color:"#64748B", cursor:"pointer", fontWeight:600,
+                }}>
+                  Back
+                </button>
+              </div>
+            </div>
           ) : (
             <div style={{ display:"flex", gap:12, marginBottom:28 }}>
-              <button onClick={()=>setStep("confirm")} style={{
+              <button onClick={()=>setStep("confirm-accept")} style={{
                 flex:1, padding:"15px", borderRadius:10, border:"none",
                 background:"#10B981", color:"#fff", fontWeight:800, fontSize:16, cursor:"pointer",
                 boxShadow:"0 4px 14px rgba(16,185,129,.35)",
               }}>
                 ✓ Accept Quote
               </button>
-              <button onClick={handleDecline} disabled={submitting} style={{
+              <button onClick={()=>setStep("confirm-decline")} style={{
                 padding:"15px 24px", borderRadius:10, border:"1px solid #FECACA",
                 background:"#fff", color:"#DC2626", fontWeight:700, fontSize:14, cursor:"pointer",
               }}>

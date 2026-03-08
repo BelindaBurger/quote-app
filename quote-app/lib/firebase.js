@@ -38,6 +38,12 @@ export async function listQuotes() {
   return snap.docs.map(d => { const data = d.data(); return { ...data, createdAt: data.createdAt?.toMillis?.() ?? Date.now(), acceptedAt: data.acceptedAt?.toMillis?.() ?? null }; });
 }
 
-export async function respondToQuote(id, status, acceptedByName = "") {
-  await updateDoc(doc(db, "quotes", id), { status, acceptedByName: acceptedByName || null, acceptedAt: serverTimestamp() });
+export async function respondToQuote(id, status, acceptedByName = "", acceptedMobile = "", acceptedEmail = "") {
+  await updateDoc(doc(db, "quotes", id), {
+    status,
+    acceptedByName: acceptedByName || null,
+    acceptedMobile: acceptedMobile || null,
+    acceptedEmail: acceptedEmail || null,
+    acceptedAt: serverTimestamp(),
+  });
 }

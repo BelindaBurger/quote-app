@@ -55,7 +55,7 @@ export default function QuoteView() {
     setSub(true); setError("");
     try {
       await respondToQuote(id, "accepted", sigName.trim(), sigMobile.trim(), sigEmail.trim());
-      const quoteLink = `${window.location.origin}/quote/${id}`;
+      const quoteLink = `https://quote-app-orcin.vercel.app/quote/${id}`;
       await sendAcceptanceEmail({
         clientName:   quote.clientName,
         quoteRef:     quote.quoteRef,
@@ -82,7 +82,7 @@ export default function QuoteView() {
     setSub(true); setError("");
     try {
       await respondToQuote(id, "declined", sigName.trim(), sigMobile.trim(), sigEmail.trim());
-      const quoteLink = `${window.location.origin}/quote/${id}`;
+      const quoteLink = `https://quote-app-orcin.vercel.app/quote/${id}`;
       await sendAcceptanceEmail({
         clientName:   quote.clientName,
         quoteRef:     quote.quoteRef,
@@ -143,7 +143,6 @@ export default function QuoteView() {
     <Screen>
       <div style={{ maxWidth:740, margin:"0 auto", padding:"32px 20px 100px" }}>
 
-        {/* Header */}
         <div style={{ marginBottom:24, paddingBottom:20, borderBottom:"1px solid #E2E8F0" }}>
           <div style={{ fontSize:11, fontWeight:700, color:"#94A3B8", textTransform:"uppercase",
             letterSpacing:1.5, marginBottom:6 }}>
@@ -158,7 +157,6 @@ export default function QuoteView() {
           </div>
         </div>
 
-        {/* Already responded banner */}
         {quote.status !== "pending" && (
           <div style={{
             background: quote.status==="accepted" ? "#D1FAE5" : "#FEE2E2",
@@ -172,7 +170,6 @@ export default function QuoteView() {
           </div>
         )}
 
-        {/* Accept / Decline / Download row at TOP */}
         {quote.status === "pending" && (
           step === "confirm-accept" ? (
             <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0",
@@ -265,7 +262,6 @@ export default function QuoteView() {
           )
         )}
 
-        {/* PDF embed */}
         <div style={{ borderRadius:12, overflow:"hidden", border:"1px solid #E2E8F0",
           marginBottom:32, boxShadow:"0 4px 24px rgba(0,0,0,.06)" }}>
           <iframe
@@ -289,14 +285,14 @@ function Screen({ children }) {
   return (
     <>
       <Head>
-        <title>Your Quote from Alublack</title>
+        <title>Your Quote from AluBlack</title>
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
       </Head>
       <div style={{ fontFamily:"'DM Sans', sans-serif", minHeight:"100vh", background:"#F8FAFC" }}>
         <nav style={{ background:"#0F172A", padding:"0 24px", height:52,
           display:"flex", alignItems:"center", gap:10 }}>
           <span style={{ fontSize:20 }}>📋</span>
-          <span style={{ color:"#fff", fontWeight:800, fontSize:16 }}>Alublack Quotes</span>
+          <span style={{ color:"#fff", fontWeight:800, fontSize:16 }}>AluBlack Quotes</span>
         </nav>
         {children}
       </div>

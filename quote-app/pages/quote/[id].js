@@ -28,10 +28,6 @@ export default function QuoteView() {
     loadQuote(id).then(q => { setQuote(q); setLoading(false); });
   }, [id]);
 
-  function handlePrint() {
-    window.print();
-  }
-
   function handleDownload() {
     if (!quote?.pdfData) return;
     const byteString = atob(quote.pdfData.split(",")[1]);
@@ -102,7 +98,7 @@ export default function QuoteView() {
   }
 
   if (loading) return (
-    <Screen title="Your Quote from Alublack">
+    <Screen>
       <div style={{ textAlign:"center", color:"#94A3B8", padding:80, fontSize:15 }}>
         Loading your quote…
       </div>
@@ -110,7 +106,7 @@ export default function QuoteView() {
   );
 
   if (!quote) return (
-    <Screen title="Not Found">
+    <Screen>
       <div style={{ textAlign:"center", padding:80 }}>
         <div style={{ fontSize:48 }}>🔍</div>
         <h2 style={{ color:"#1E293B", marginTop:12 }}>Quote Not Found</h2>
@@ -120,7 +116,7 @@ export default function QuoteView() {
   );
 
   if (step === "done") return (
-    <Screen title={quote.status === "accepted" ? "Quote Accepted!" : "Response Recorded"}>
+    <Screen>
       <div style={{ display:"flex", justifyContent:"center", alignItems:"center", minHeight:"60vh" }}>
         <div style={{ textAlign:"center", maxWidth:420 }}>
           <div style={{ fontSize:64, marginBottom:16 }}>
@@ -140,10 +136,9 @@ export default function QuoteView() {
   );
 
   return (
-    <Screen title="Your Quote from Alublack">
+    <Screen>
       <div style={{ maxWidth:740, margin:"0 auto", padding:"32px 20px 100px" }}>
 
-        {/* Header */}
         <div style={{ marginBottom:24, paddingBottom:20, borderBottom:"1px solid #E2E8F0" }}>
           <div style={{ fontSize:11, fontWeight:700, color:"#94A3B8", textTransform:"uppercase",
             letterSpacing:1.5, marginBottom:6 }}>
@@ -158,7 +153,6 @@ export default function QuoteView() {
           </div>
         </div>
 
-        {/* Already responded banner */}
         {quote.status !== "pending" && (
           <div style={{
             background: quote.status==="accepted" ? "#D1FAE5" : "#FEE2E2",
@@ -172,7 +166,6 @@ export default function QuoteView() {
           </div>
         )}
 
-        {/* Accept/Decline at TOP */}
         {quote.status === "pending" && (
           step === "confirm" ? (
             <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0",
@@ -226,13 +219,10 @@ export default function QuoteView() {
           )
         )}
 
-        {/* Download & Print */}
-        <div style={{ display:"flex", gap:10, marginBottom:20 }}>
+        <div style={{ marginBottom:20 }}>
           <button onClick={handleDownload} style={dlBtn}>⬇ Download PDF</button>
-          <button onClick={handlePrint} style={dlBtn}>🖨 Print Quote</button>
         </div>
 
-        {/* PDF embed */}
         <div style={{ borderRadius:12, overflow:"hidden", border:"1px solid #E2E8F0",
           marginBottom:32, boxShadow:"0 4px 24px rgba(0,0,0,.06)" }}>
           <iframe
@@ -257,7 +247,7 @@ const dlBtn = {
   background:"#fff", color:"#374151", fontWeight:600, fontSize:13, cursor:"pointer",
 };
 
-function Screen({ title, children }) {
+function Screen({ children }) {
   return (
     <>
       <Head>

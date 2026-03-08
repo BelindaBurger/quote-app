@@ -68,6 +68,7 @@ export default function QuoteView() {
         quoteLink,
         clientMobile: sigMobile.trim(),
         clientEmail:  sigEmail.trim(),
+        status:       "ACCEPTED",
       });
       setQuote(prev => ({ ...prev, status:"accepted", acceptedByName: sigName.trim() }));
       setStep("done");
@@ -81,6 +82,17 @@ export default function QuoteView() {
     setSub(true);
     try {
       await respondToQuote(id, "declined");
+      const quoteLink = `${window.location.origin}/quote/${id}`;
+      await sendAcceptanceEmail({
+        clientName:   quote.clientName,
+        quoteRef:     quote.quoteRef,
+        acceptedBy:   "—",
+        acceptedAt:   Date.now(),
+        quoteLink,
+        clientMobile: "—",
+        clientEmail:  "—",
+        status:       "DECLINED",
+      });
       setQuote(prev => ({ ...prev, status:"declined" }));
       setStep("done");
     } catch(e) {
@@ -263,3 +275,8 @@ function Screen({ title, children }) {
     </>
   );
 }
+```
+
+Also update your **EmailJS template** subject line to:
+```
+{{status}} — Quote {{quote_ref}} | {{client_name}}

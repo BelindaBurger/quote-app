@@ -275,8 +275,3 @@ function Screen({ title, children }) {
     </>
   );
 }
-```
-
-Also update your **EmailJS template** subject line to:
-```
-{{status}} — Quote {{quote_ref}} | {{client_name}}

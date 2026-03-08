@@ -143,6 +143,7 @@ export default function QuoteView() {
     <Screen>
       <div style={{ maxWidth:740, margin:"0 auto", padding:"32px 20px 100px" }}>
 
+        {/* Header */}
         <div style={{ marginBottom:24, paddingBottom:20, borderBottom:"1px solid #E2E8F0" }}>
           <div style={{ fontSize:11, fontWeight:700, color:"#94A3B8", textTransform:"uppercase",
             letterSpacing:1.5, marginBottom:6 }}>
@@ -157,6 +158,7 @@ export default function QuoteView() {
           </div>
         </div>
 
+        {/* Already responded banner */}
         {quote.status !== "pending" && (
           <div style={{
             background: quote.status==="accepted" ? "#D1FAE5" : "#FEE2E2",
@@ -170,6 +172,7 @@ export default function QuoteView() {
           </div>
         )}
 
+        {/* Accept / Decline / Download row at TOP */}
         {quote.status === "pending" && (
           step === "confirm-accept" ? (
             <div style={{ background:"#F0FDF4", border:"1px solid #BBF7D0",
@@ -246,8 +249,14 @@ export default function QuoteView() {
               }}>
                 ✓ Accept Quote
               </button>
+              <button onClick={handleDownload} style={{
+                padding:"15px 20px", borderRadius:10, border:"1px solid #E2E8F0",
+                background:"#fff", color:"#374151", fontWeight:700, fontSize:14, cursor:"pointer",
+              }}>
+                ⬇ Download
+              </button>
               <button onClick={()=>setStep("confirm-decline")} style={{
-                padding:"15px 24px", borderRadius:10, border:"1px solid #FECACA",
+                padding:"15px 20px", borderRadius:10, border:"1px solid #FECACA",
                 background:"#fff", color:"#DC2626", fontWeight:700, fontSize:14, cursor:"pointer",
               }}>
                 Decline
@@ -256,10 +265,7 @@ export default function QuoteView() {
           )
         )}
 
-        <div style={{ marginBottom:20 }}>
-          <button onClick={handleDownload} style={dlBtn}>⬇ Download PDF</button>
-        </div>
-
+        {/* PDF embed */}
         <div style={{ borderRadius:12, overflow:"hidden", border:"1px solid #E2E8F0",
           marginBottom:32, boxShadow:"0 4px 24px rgba(0,0,0,.06)" }}>
           <iframe
@@ -277,11 +283,6 @@ export default function QuoteView() {
 const inputStyle = {
   width:"100%", padding:"12px 14px", borderRadius:8, border:"1px solid #BBF7D0",
   fontSize:15, outline:"none", boxSizing:"border-box", color:"#1E293B", background:"#fff",
-};
-
-const dlBtn = {
-  padding:"10px 18px", borderRadius:8, border:"1px solid #E2E8F0",
-  background:"#fff", color:"#374151", fontWeight:600, fontSize:13, cursor:"pointer",
 };
 
 function Screen({ children }) {

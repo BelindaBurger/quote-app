@@ -137,7 +137,7 @@ export default function QuoteView() {
         <div style={{ borderRadius:12, overflow:"hidden", border:"1px solid #E2E8F0",
           marginBottom:32, boxShadow:"0 4px 24px rgba(0,0,0,.06)" }}>
           <iframe
-            src={quote.pdfUrl}
+            src={quote.pdfData}
             title="Quote PDF"
             style={{ width:"100%", height:640, border:"none", display:"block" }}
           />
